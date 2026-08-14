@@ -1,5 +1,43 @@
 {
   "version": 2,
-  "builds": [{ "src": "api/index.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }]
+
+  /* Serve a Node function for API routes and let static files/next/static etc. be served normally.
+     Use "functions" to set runtime and timeout for serverless functions. */
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 10
+    }
+  },
+
+  /* If your app is a single-page app and you need client-side routing, rewrite non-asset requests
+     to the static index.html or to the API entrypoint intentionally. Here we show two common options:
+     - Option A (recommended for SPA + static build): rewrite everything except /api to /index.html
+     - Option B (recommended for API-centric apps): only route /api/* to the function
+  */
+  "rewrites": [
+    /* Option B: route only API calls to your function (safer) */
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+
+    /* If you actually need to rewrite all non-asset paths to the SPA entry, you can add:
+    ,
+    { "source": "/((?!api|_next|static|favicon.ico).*)", "destination": "/index.html" }
+    */
+  ],
+
+  /* Security & caching headers (add/adjust as needed) */
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer-when-downgrade" }
+      ]
+    }
+  ],
+
+  /* URL handling convenience */
+  "cleanUrls": true,
+  "trailingSlash": false
 }
